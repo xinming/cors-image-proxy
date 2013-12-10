@@ -7,6 +7,22 @@ httpProxy.createServer(function (req, res, proxy) {
   req.url = new_req.path
   req.headers.host = new_req.host
 
+
+  res.oldWriteHead = res.writeHead;
+  res.writeHead = function(statusCode, headers) {
+    /* add logic to change headers here */
+    // var contentType = res.getHeader('content-type');
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Credentials', true)
+
+    // old way: might not work now
+    // as headers param is not always provided
+    // https://github.com/nodejitsu/node-http-proxy/pull/260/files
+    // headers['foo'] = 'bar';       
+
+    res.oldWriteHead(statusCode, headers);
+  }
+
   proxy.proxyRequest(req, res, {
     host: new_req.host,
     port: 80
