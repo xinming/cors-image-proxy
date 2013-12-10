@@ -12,6 +12,7 @@ to install dependencies
 #### Usage:  
 ###### Start Server:   
 `node proxy.js`  
+`forever proxy.js` in case you wanna use [forever](https://github.com/nodejitsu/forever)
 ###### Request Format:  
 
 `http://proxy:8000/[image_url]`
