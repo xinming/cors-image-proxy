@@ -22,9 +22,13 @@ httpProxy.createServer(function (req, res, proxy) {
 
     res.oldWriteHead(statusCode, headers);
   }
+  try{
+    proxy.proxyRequest(req, res, {
+      host: new_req.host,
+      port: 80
+    });
+  }catch(err){
+    console.log(err);
+  }
 
-  proxy.proxyRequest(req, res, {
-    host: new_req.host,
-    port: 80
-  });
 }).listen(8000);
