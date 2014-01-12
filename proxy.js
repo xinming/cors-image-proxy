@@ -1,6 +1,26 @@
 var http = require('http'),
     httpProxy = require('http-proxy');
     url = require('url');
+    request = require('request');
+
+function processRequest(req, res, proxy, new_req){
+  req.url = new_req.path
+  req.headers.host = new_req.host
+  res.oldWriteHead = res.writeHead;
+  res.writeHead = function(statusCode, headers) {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Credentials', true)
+    res.oldWriteHead(statusCode, headers);
+  }
+  try{
+    proxy.proxyRequest(req, res, {
+      host: req.headers.host,
+      port: 80
+    });
+  }catch(err){
+    console.log(err);
+  }
+}
 
 httpProxy.createServer(function (req, res, proxy) {
   var url_path = req.url.slice(1)
@@ -12,23 +32,17 @@ httpProxy.createServer(function (req, res, proxy) {
   }
   else{
     new_req = url.parse(url_path)
-    req.url = new_req.path
-    req.headers.host = new_req.host
-
-
-    res.oldWriteHead = res.writeHead;
-    res.writeHead = function(statusCode, headers) {
-      res.setHeader('Access-Control-Allow-Origin', '*')
-      res.setHeader('Access-Control-Allow-Credentials', true)
-      res.oldWriteHead(statusCode, headers);
-    }
-    try{
-      proxy.proxyRequest(req, res, {
-        host: new_req.host,
-        port: 80
+    if(new_req.host == "avatars.io"){
+      request({
+        url: new_req.href, 
+        followRedirect:false
+      }, function(error, response, body){
+        var final_req = url.parse(response.headers.location);
+        processRequest(req, res, proxy, final_req);
       });
-    }catch(err){
-      console.log(err);
+    }
+    else{
+      processRequest(req, res, proxy, new_req);
     }
   }
 }).listen(8000);
