@@ -42,11 +42,14 @@ httpProxy.createServer(function (req, res, proxy) {
       });
     }
     else{
-      if(new_req.host && new_req.host.match(/dgm59|twimg|instagram|facebook|fbcdn|distillery|qrserver|igcdn|naver/)){
+      if(new_req.host && new_req.host.match(/dgm59|cloudinary|twimg|instagram|facebook|fbcdn|distillery|qrserver|igcdn|naver/)){
         processRequest(req, res, proxy, new_req);
         console.log("allowed " + new_req.host)
       }else{
         console.log("disallowed " + new_req.host)
+        res.writeHead(400);
+        res.write('Not Allowed');
+        res.end();
       }
     }
   }
