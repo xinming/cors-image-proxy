@@ -14,8 +14,8 @@ function processRequest(req, res, proxy, new_req){
   }
   try{
     proxy.proxyRequest(req, res, {
-      host: req.headers.host,
-      port: 80
+      host: req.headers.host.split(":")[0],
+      port: parseInt(req.headers.host.split(":")[1]) || 80
     });
   }catch(err){
     console.log(err);
@@ -34,7 +34,7 @@ httpProxy.createServer(function (req, res, proxy) {
     new_req = url.parse(url_path)
     if(new_req.host == "avatars.io"){
       request({
-        url: new_req.href, 
+        url: new_req.href,
         followRedirect:false
       }, function(error, response, body){
         var final_req = url.parse(response.headers.location);
@@ -42,7 +42,12 @@ httpProxy.createServer(function (req, res, proxy) {
       });
     }
     else{
-      processRequest(req, res, proxy, new_req);
+      if(new_req.host && new_req.host.match(/dgm59|twimg|instagram|facebook|fbcdn|distillery|qrserver|igcdn|naver/)){
+        processRequest(req, res, proxy, new_req);
+        console.log("allowed " + new_req.host)
+      }else{
+        console.log("disallowed " + new_req.host)
+      }
     }
   }
 }).listen(8000);
@@ -52,3 +57,8 @@ http.createServer(function (req, res) {
   res.write('<?xml version="1.0"?>\n<!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">\n<cross-domain-policy>\n<allow-access-from domain="*" />\n</cross-domain-policy>\n');
   res.end();
 }).listen(9000);
+
+
+process.on('uncaughtException', function(e){
+  console.log(e)
+});
